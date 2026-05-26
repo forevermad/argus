@@ -3,7 +3,8 @@ import Foundation
 class FMPProvider {
     static let shared = FMPProvider()
 
-    private let baseURL = "https://financialmodelingprep.com/api/v3"
+    // FMP v3 legacy endpoint was sunset Aug 2025 for new accounts → /stable
+    private let baseURL = "https://financialmodelingprep.com/stable"
 
     private init() {}
 
@@ -39,15 +40,15 @@ class FMPProvider {
         let revenueHistory: [Double] = []
         let netIncomeHistory: [Double] = []
 
-        let marketCap = quote?.marketCap ?? profile?.mktCap ?? finnhub?.marketCapitalization
-        let pe = quote?.pe ?? metrics?.peRatio ?? finnhub?.peTTM
-        let pb = metrics?.priceToBookRatio ?? finnhub?.pbAnnual
-        let dividendYield = ratios?.dividendYield ?? finnhub?.dividendYieldIndicatedAnnual
-        let eps = quote?.eps ?? finnhub?.epsTTM
+        let marketCap = quote?.marketCap ?? profile?.marketCap ?? finnhub?.marketCapitalization
+        let pe = ratios?.priceToEarningsRatioTTM ?? metrics?.peRatio ?? finnhub?.peTTM
+        let pb = ratios?.priceToBookRatioTTM ?? finnhub?.pbAnnual
+        let dividendYield = ratios?.dividendYieldTTM ?? finnhub?.dividendYieldIndicatedAnnual
+        let eps = finnhub?.epsTTM
         let revenueTTM = finnhub?.revenueTTM
         let netIncome = finnhub?.netIncomeAnnual
-        let roe = ratios?.returnOnEquity ?? finnhub?.roeTTM
-        let currentRatio = ratios?.currentRatio ?? finnhub?.currentRatioAnnual
+        let roe = metrics?.returnOnEquityTTM ?? finnhub?.roeTTM
+        let currentRatio = ratios?.currentRatioTTM ?? metrics?.currentRatioTTM ?? finnhub?.currentRatioAnnual
 
         var data = FinancialsData(
             symbol: symbol,
@@ -68,7 +69,7 @@ class FMPProvider {
             peRatio: pe,
             forwardPERatio: nil,
             priceToBook: pb,
-            evToEbitda: metrics?.enterpriseValueOverEBITDA,
+            evToEbitda: metrics?.evToEBITDATTM,
             dividendYield: dividendYield,
             earningsPerShare: eps,
             forwardGrowthEstimate: growth?.epsgrowth,
@@ -79,14 +80,14 @@ class FMPProvider {
             recommendationMean: nil,
             numberOfAnalystOpinions: nil
         )
-        data.profitMargin = ratios?.netProfitMargin
+        data.profitMargin = ratios?.netProfitMarginTTM
         data.returnOnEquity = roe
-        data.returnOnAssets = ratios?.returnOnAssets
-        data.debtToEquity = ratios?.debtEquityRatio
+        data.returnOnAssets = metrics?.returnOnAssetsTTM
+        data.debtToEquity = ratios?.debtToEquityRatioTTM
         data.currentRatio = currentRatio
-        data.priceToSales = ratios?.priceToSalesRatio
-        data.pegRatio = metrics?.pegRatio
-        data.enterpriseValue = metrics?.enterpriseValue
+        data.priceToSales = ratios?.priceToSalesRatioTTM
+        data.pegRatio = ratios?.priceToEarningsGrowthRatioTTM
+        data.enterpriseValue = metrics?.enterpriseValueTTM
         data.revenueGrowth = growth?.revenueGrowth
         data.earningsGrowth = growth?.epsgrowth
         return data
@@ -95,27 +96,27 @@ class FMPProvider {
     // MARK: - Existing endpoints
 
     func fetchProfile(symbol: String) async throws -> FMPProfile? {
-        let response: [FMPProfile] = try await get(path: "profile/\(symbol)", params: [:])
+        let response: [FMPProfile] = try await get(path: "profile", params: ["symbol": symbol])
         return response.first
     }
 
     func fetchQuote(symbol: String) async throws -> FMPQuote? {
-        let response: [FMPQuote] = try await get(path: "quote/\(symbol)", params: [:])
+        let response: [FMPQuote] = try await get(path: "quote", params: ["symbol": symbol])
         return response.first
     }
 
     private func fetchKeyMetrics(symbol: String) async throws -> KeyMetrics? {
-        let response: [KeyMetrics] = try await get(path: "key-metrics-ttm/\(symbol)", params: ["limit": "1"])
+        let response: [KeyMetrics] = try await get(path: "key-metrics-ttm", params: ["symbol": symbol, "limit": "1"])
         return response.first
     }
 
     private func fetchRatios(symbol: String) async throws -> Ratios? {
-        let response: [Ratios] = try await get(path: "ratios-ttm/\(symbol)", params: ["limit": "1"])
+        let response: [Ratios] = try await get(path: "ratios-ttm", params: ["symbol": symbol, "limit": "1"])
         return response.first
     }
 
     private func fetchFinancialGrowth(symbol: String) async throws -> FinancialGrowth? {
-        let response: [FinancialGrowth] = try await get(path: "financial-growth/\(symbol)", params: ["limit": "1"])
+        let response: [FinancialGrowth] = try await get(path: "financial-growth", params: ["symbol": symbol, "limit": "1"])
         return response.first
     }
 
@@ -154,17 +155,16 @@ struct FMPProfile: Codable {
     let symbol: String
     let price: Double?
     let beta: Double?
-    let volAvg: Int?
-    let mktCap: Double?
-    let lastDiv: Double?
+    let marketCap: Double?          // was mktCap
+    let lastDividend: Double?       // was lastDiv
     let range: String?
-    let changes: Double?
+    let change: Double?             // was changes
     let companyName: String?
     let currency: String?
     let isin: String?
     let cusip: String?
     let exchange: String?
-    let exchangeShortName: String?
+    let exchangeFullName: String?   // was exchangeShortName
     let industry: String?
     let website: String?
     let description: String?
@@ -177,8 +177,6 @@ struct FMPProfile: Codable {
     let city: String?
     let state: String?
     let zip: String?
-    let dcfDiff: Double?
-    let dcf: Double?
     let image: String?
     let ipoDate: String?
     let defaultImage: Bool?
@@ -190,7 +188,7 @@ struct FMPQuote: Codable {
     let symbol: String
     let name: String?
     let price: Double?
-    let changesPercentage: Double?
+    let changePercentage: Double?   // was changesPercentage
     let change: Double?
     let dayLow: Double?
     let dayHigh: Double?
@@ -200,32 +198,31 @@ struct FMPQuote: Codable {
     let priceAvg50: Double?
     let priceAvg200: Double?
     let volume: Int?
-    let avgVolume: Int?
     let open: Double?
     let previousClose: Double?
-    let eps: Double?
-    let pe: Double?
-    let earningsAnnouncement: String?
-    let sharesOutstanding: Int?
     let timestamp: Int?
+    // eps and pe moved to ratios endpoint in stable API
 }
 
 private struct KeyMetrics: Codable {
+    let enterpriseValueTTM: Double?
+    let evToEBITDATTM: Double?
+    let returnOnEquityTTM: Double?
+    let returnOnAssetsTTM: Double?
+    let currentRatioTTM: Double?
+    // legacy field kept for fallback mapping
     let peRatio: Double?
-    let priceToBookRatio: Double?
-    let enterpriseValue: Double?
-    let enterpriseValueOverEBITDA: Double?
-    let pegRatio: Double?
 }
 
 private struct Ratios: Codable {
-    let dividendYield: Double?
-    let returnOnEquity: Double?
-    let returnOnAssets: Double?
-    let debtEquityRatio: Double?
-    let currentRatio: Double?
-    let netProfitMargin: Double?
-    let priceToSalesRatio: Double?
+    let dividendYieldTTM: Double?
+    let debtToEquityRatioTTM: Double?
+    let currentRatioTTM: Double?
+    let netProfitMarginTTM: Double?
+    let priceToSalesRatioTTM: Double?
+    let priceToBookRatioTTM: Double?
+    let priceToEarningsRatioTTM: Double?
+    let priceToEarningsGrowthRatioTTM: Double?
 }
 
 private struct FinancialGrowth: Codable {

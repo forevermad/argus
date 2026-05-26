@@ -242,7 +242,7 @@ final class HeimdallOrchestrator {
         var quote = Quote(
             c: price,
             d: q.change,
-            dp: q.changesPercentage,
+            dp: q.changePercentage,
             currency: "USD",
             shortName: q.name,
             symbol: symbol
@@ -250,8 +250,8 @@ final class HeimdallOrchestrator {
         quote.previousClose = q.previousClose
         quote.volume = q.volume.map(Double.init)
         quote.timestamp = q.timestamp.map { Date(timeIntervalSince1970: TimeInterval($0)) } ?? Date()
-        quote.peRatio = q.pe
-        quote.eps = q.eps
+        quote.peRatio = nil  // moved to ratios-ttm in FMP stable API
+        quote.eps = nil       // moved to ratios-ttm in FMP stable API
         quote.marketCap = q.marketCap
         return quote
     }
