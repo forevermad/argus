@@ -342,25 +342,40 @@ actor BorsaPyProvider {
         guard let baseURL = preferredBackendBaseURL ?? candidates.first,
               let healthURL = URL(string: "\(baseURL)/health") else { return false }
 
+        // Dedicated session: shared pool'dan bağımsız, diğer BIST isteklerinin
+        // 6-connection limitini doldurup health check'i bloklamasını önler.
+        let sessionConfig = URLSessionConfiguration.ephemeral
+        sessionConfig.timeoutIntervalForRequest = 20
+        sessionConfig.timeoutIntervalForResource = 25
+        sessionConfig.httpMaximumConnectionsPerHost = 2
+        let session = URLSession(configuration: sessionConfig)
+
         let maxAttempts = 30
         for attempt in 1...maxAttempts {
             var req = URLRequest(url: healthURL)
-            req.timeoutInterval = 15
+            req.timeoutInterval = 20
             req.cachePolicy = .reloadIgnoringLocalCacheData
             do {
-                let (data, _) = try await URLSession.shared.data(for: req)
+                let (data, _) = try await session.data(for: req)
                 if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                    if json["borsapy_ready"] as? Bool == true {
+                    if let isReady = json["borsapy_ready"] as? Bool {
+                        if isReady {
+                            recordSuccess()
+                            print("BorsaPyProvider: backend warm ✅ (borsapy_ready:\(attempt). deneme)")
+                            return true
+                        }
+                        // borsapy_ready: false — new server, still initializing
+                        print("BorsaPyProvider: server hazır ama borsapy yükleniyor (\(attempt)/\(maxAttempts))...")
+                    } else {
+                        // borsapy_ready key absent — old server format, assume ready
                         recordSuccess()
-                        print("BorsaPyProvider: backend warm ✅ (borsapy_ready:\(attempt). deneme)")
+                        print("BorsaPyProvider: eski server formatı, warm kabul edildi")
                         return true
                     }
-                    // Server up but borsapy still loading — wait and retry
-                    print("BorsaPyProvider: server hazır ama borsapy yükleniyor (\(attempt)/\(maxAttempts))...")
                 } else {
-                    // Old server (no borsapy_ready field) — assume ready
+                    // Non-JSON response — unexpected but treat as old server
                     recordSuccess()
-                    print("BorsaPyProvider: eski server formatı, warm kabul edildi")
+                    print("BorsaPyProvider: eski server formatı (non-JSON), warm kabul edildi")
                     return true
                 }
             } catch {
