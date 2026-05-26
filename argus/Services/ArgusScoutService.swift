@@ -104,7 +104,7 @@ final class ArgusScoutService: Sendable {
         let isInteresting = detectInterest(quote: quote, candles: candles)
         
         // 4. ALWAYS DO FULL ANALYSIS (for story creation)
-        var atlasScore = FundamentalScoreStore.shared.getScore(for: symbol)?.totalScore
+        var atlasScore = await MainActor.run { FundamentalScoreStore.shared.getScore(for: symbol)?.totalScore }
         
         // PATCH: Scout Blind Spot Fix
         if atlasScore == nil {
@@ -112,7 +112,7 @@ final class ArgusScoutService: Sendable {
                 let financials = try await HeimdallOrchestrator.shared.requestFundamentals(symbol: symbol)
                 // Calculate and Save
                 if let score = FundamentalScoreEngine.shared.calculate(data: financials) {
-                    FundamentalScoreStore.shared.saveScore(score)
+                    await MainActor.run { FundamentalScoreStore.shared.saveScore(score) }
                     atlasScore = score.totalScore
                      print("🔭 Scout: Calculated fresh Atlas score for \(symbol): \(Int(score.totalScore))")
                 }

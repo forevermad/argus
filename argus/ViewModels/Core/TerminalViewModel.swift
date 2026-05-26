@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 
+@MainActor
 final class TerminalViewModel: ObservableObject {
     static let shared = TerminalViewModel()
 

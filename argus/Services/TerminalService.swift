@@ -31,7 +31,7 @@ class TerminalService {
         // 4. Data Health Hesaplama
         let hasQuote = quote != nil
         let candleCount = candles?.count ?? 0
-        let hasFund = FundamentalScoreStore.shared.getScore(for: symbol) != nil
+        let hasFund = await MainActor.run { FundamentalScoreStore.shared.getScore(for: symbol) != nil }
         let hasMacro = MacroRegimeService.shared.getCachedRating() != nil
         let hasNews = true // Şimdilik varsayılan
         

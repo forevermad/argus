@@ -398,7 +398,32 @@ actor BorsaPyProvider {
     func getSectorIndex(code: String) async throws -> BistQuote {
         try await getBistQuote(symbol: code)
     }
-    
+
+    /// Returns the constituent ticker codes of a BIST index (e.g. "XUTUM", "XU100").
+    /// Symbols are returned without the ".IS" suffix — callers must append it.
+    func getIndexComponents(code: String) async throws -> [String] {
+        let json = try await fetchJSON(path: "/index/\(code.uppercased())/components")
+        guard let root = json as? [String: Any] else { throw URLError(.cannotParseResponse) }
+        if let list = root["components"] as? [String] { return list }
+        // Fallback: list of dicts with a "symbol" key
+        if let records = root["components"] as? [[String: Any]] {
+            return records.compactMap { $0["symbol"] as? String }
+        }
+        return []
+    }
+
+    /// BIST'te işlem gören TÜM hisseleri döndürür — XUTUM + GİP + diğer pazarlar.
+    /// Kaynak: BIST resmi CSV (hisse_endeks_ds.csv). XUTUM'a girmeyen küçük
+    /// şirketler (örn. Gelişen İşletmeler Pazarı) bu çağrıyla eklenir.
+    func getAllBistSymbols() async throws -> [String] {
+        let json = try await fetchJSON(path: "/stocks/all")
+        guard let root = json as? [String: Any],
+              let list = root["symbols"] as? [String] else {
+            throw URLError(.cannotParseResponse)
+        }
+        return list
+    }
+
     // MARK: - Public API: History
     
     func getBistHistory(symbol: String, days: Int = 30) async throws -> [BorsaPyCandle] {

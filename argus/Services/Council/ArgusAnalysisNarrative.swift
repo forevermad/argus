@@ -36,7 +36,7 @@ enum ArgusAnalysisNarrative {
             return cached
         }
 
-        let prompt = buildPrompt(symbol: symbol, decision: decision)
+        let prompt = await buildPrompt(symbol: symbol, decision: decision)
         let messages: [GroqClient.ChatMessage] = [
             .init(role: "system", content: systemPrompt),
             .init(role: "user", content: prompt)
@@ -93,6 +93,7 @@ enum ArgusAnalysisNarrative {
     - Düz paragraf metin ver, başka hiçbir şey yok.
     """
 
+    @MainActor
     private static func buildPrompt(symbol: String, decision d: ArgusGrandDecision) -> String {
         let action = humanAction(d.finalActionCore)
         let score = Int(d.finalScoreCore.rounded())

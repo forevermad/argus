@@ -170,6 +170,7 @@ extension ArgusGrandDecision {
     /// Hermes: council kararında varsa onu kullan; yoksa sembol-bazlı
     /// haber insight'larından ortalama sentiment skoru üret. Sembolün
     /// haberi yoksa 0 → motor "Bekleniyor" gösterir.
+    @MainActor
     var hermesScore: Double {
         if let hd = hermesDecision { return hd.netSupport * 100 }
         let insights = HermesStateViewModel.shared.newsInsightsBySymbol[symbol] ?? []

@@ -67,7 +67,8 @@ class PortfolioRiskManager {
         currentPrice: Double,
         portfolio: [Trade],
         cashBalance: Double,
-        totalEquity: Double
+        totalEquity: Double,
+        peakEquity: Double = 0
     ) -> RiskCheckResult {
         
         var warnings: [String] = []
@@ -168,7 +169,6 @@ class PortfolioRiskManager {
         }
 
         // 7. Portföy Drawdown Kontrolü
-        let peakEquity = isBist ? PortfolioStore.shared.peakBistEquity : PortfolioStore.shared.peakGlobalEquity
         if peakEquity > 0 {
             let drawdown = (peakEquity - totalEquity) / peakEquity
             if drawdown >= limits.maxPortfolioDrawdown {

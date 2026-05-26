@@ -11,6 +11,7 @@ import SwiftUI
 /// - AutoPilotStore+Loop.swift     (timer yönetimi)
 /// - AutoPilotStore+Scan.swift     (runAutoPilot + processSignals + plan triggers)
 /// - AutoPilotStore+Learning.swift (TradeBrain 3.0 öğrenme döngüsü)
+@MainActor
 final class AutoPilotStore: ObservableObject {
     static let shared = AutoPilotStore()
 

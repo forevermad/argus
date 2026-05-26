@@ -18,6 +18,7 @@ struct ArgusNarrativeEngine {
 
     // MARK: - Main API (Fallback - Senkron veri özeti)
 
+    @MainActor
     static func generateReport(symbol: String) -> String {
         let decision = SignalStateViewModel.shared.grandDecisions[symbol]
         let atlas = FundamentalScoreStore.shared.getScore(for: symbol)
@@ -38,7 +39,7 @@ struct ArgusNarrativeEngine {
     /// Async AI rapor - Chat veya detaylı analiz için
     static func generateAIReport(symbol: String, type: ReportType = .comprehensive) async -> String {
         let decision = await MainActor.run { SignalStateViewModel.shared.grandDecisions[symbol] }
-        let atlas = FundamentalScoreStore.shared.getScore(for: symbol)
+        let atlas = await MainActor.run { FundamentalScoreStore.shared.getScore(for: symbol) }
         let orion = await MainActor.run { SignalStateViewModel.shared.orionScores[symbol] }
         let news = await MainActor.run { HermesNewsViewModel.shared.newsInsightsBySymbol[symbol] ?? [] }
         let patterns = await MainActor.run { SignalStateViewModel.shared.patterns[symbol] }

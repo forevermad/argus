@@ -725,7 +725,7 @@ final class ArgusAutoPilotEngine: Sendable {
                 portfolioValueAfter: nil,
                 rationale: "Strategy: \(mode.rawValue)"
             )
-            logger.log(dec)
+            await logger.log(dec)
         }
     }
 }

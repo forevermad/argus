@@ -39,7 +39,7 @@ final class PositionPlanStore: ObservableObject {
 
     func triggerSmartPlan(for trade: Trade) {
         Task {
-            guard let decision = SignalStateViewModel.shared.grandDecisions[trade.symbol] else { return }
+            guard let decision = await MainActor.run(body: { SignalStateViewModel.shared.grandDecisions[trade.symbol] }) else { return }
             guard let plan = createPlan(for: trade, decision: decision) else { return }
             await MainActor.run { self.generatedSmartPlan = plan }
         }

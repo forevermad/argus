@@ -369,7 +369,7 @@ final class HermesNewsViewModel: ObservableObject {
             self.newsErrorMessage = "Haber analizi yapılamadı: \(error.localizedDescription)"
         }
 
-        self.hermesMode = HermesCoordinator.shared.getCurrentMode()
+        self.hermesMode = await HermesCoordinator.shared.getCurrentMode()
         self.isLoadingNews = false
 
         // Note: Argus recalculation removed - caller should handle if needed

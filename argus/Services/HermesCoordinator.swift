@@ -2,19 +2,19 @@ import Foundation
 
 /// Main Coordinator for Hermes Integration.
 /// Manages fetching news, checking cache, batching AI calls, and fallback to Lite mode.
-final class HermesCoordinator: Sendable {
+actor HermesCoordinator {
     static let shared = HermesCoordinator()
-    
+
     private let cache = HermesCacheStore.shared
     private let llmService = HermesLLMService.shared
-    
+
     // State
     private var isLiteMode = false
-    
+
     // P2: Rate Limiting & Weighted Average states
     private var lastRequestTime: [String: Date] = [:]
     private let rateLimitSeconds: TimeInterval = 60 // 1 dakika
-    
+
     private init() {}
     
     func getHermesSummaries(for symbol: String) async -> [HermesSummary] {
@@ -92,10 +92,10 @@ final class HermesCoordinator: Sendable {
 
         await withTaskGroup(of: Void.self) { group in
             for symbol in batch {
-                group.addTask { [weak self] in
+                group.addTask {
                     // analyzeOnDemand zaten rate-limited (60sn aynı sembol).
                     // Sonuç event store'a yazılır; Council.convene buradan okur.
-                    _ = await self?.analyzeOnDemand(symbol: symbol)
+                    _ = await self.analyzeOnDemand(symbol: symbol)
                 }
             }
         }

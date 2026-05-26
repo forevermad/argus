@@ -515,6 +515,24 @@ async def index_components(code: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/stocks/all")
+async def all_bist_stocks():
+    """Tüm BIST hisselerini döndürür — XUTUM dahil GİP ve diğer pazarlar.
+    BIST resmi CSV'sindeki (hisse_endeks_ds.csv) TÜM benzersiz semboller."""
+    try:
+        from borsapy._providers.bist_index import get_bist_index_provider
+        provider = get_bist_index_provider()
+        df = provider._download_components()
+        if df is None:
+            raise HTTPException(status_code=503, detail="BIST CSV indirilemedi")
+        symbols = sorted(df["symbol"].dropna().unique().tolist())
+        return {"symbols": symbols, "count": len(symbols)}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # ---------------------------------------------------------------------------
 # Inflation - Enflasyon
 # ---------------------------------------------------------------------------

@@ -13,9 +13,22 @@ class ExpectationsStore: ObservableObject {
     
     private let userDefaults = UserDefaults.standard
     private let storageKey = "aether_expectations"
-    
+
+    // Thread-safe read cache — written on @MainActor, safely read from any thread.
+    // Avoids MainActor.assumeIsolated (which crashes on background threads).
+    private nonisolated(unsafe) var _surpriseSnapshot: [String: Double] = [:]
+
     init() {
         loadFromDisk()
+        refreshSurpriseSnapshot()
+    }
+
+    private func refreshSurpriseSnapshot() {
+        var snapshot: [String: Double] = [:]
+        for indicator in EconomicIndicator.allCases {
+            snapshot[indicator.rawValue] = getSurpriseImpact(for: indicator)
+        }
+        _surpriseSnapshot = snapshot
     }
     
     // MARK: - Models
@@ -152,6 +165,7 @@ class ExpectationsStore: ObservableObject {
         )
         expectations[id] = entry
         saveToDisk()
+        refreshSurpriseSnapshot()
         print("📝 Expectation set: \(indicator.displayName) = \(value)\(indicator.unit)")
     }
     
@@ -162,6 +176,7 @@ class ExpectationsStore: ObservableObject {
         entry.announcedAt = Date()
         expectations[id] = entry
         saveToDisk()
+        refreshSurpriseSnapshot()
 
         if let surprise = entry.surprise {
             let emoji = entry.isPositiveSurprise == true ? "✅" : "⚠️"
@@ -198,6 +213,7 @@ class ExpectationsStore: ObservableObject {
         entry.announcedAt = observationDate
         expectations[entry.id] = entry
         saveToDisk()
+        refreshSurpriseSnapshot()
 
         if let surprise = entry.surprise {
             let mark: String
@@ -259,21 +275,18 @@ class ExpectationsStore: ObservableObject {
     // MARK: - Senkron Erişim (MacroRegimeService için)
     // Bu fonksiyonlar cached verileri döndürür - thread-safe snapshot
     
+    /// Thread-safe read: snapshot'tan okur, background thread'den güvenle çağrılabilir.
     nonisolated func getSurpriseImpactSync(for indicator: EconomicIndicator) -> Double {
-        // MainActor üzerinde çalışan asenkron bir fonksiyon, ama cached değer döndürür
-        // Note: Bu bir snapshot'tır, anlık değer farklı olabilir
-        return MainActor.assumeIsolated {
-            self.getSurpriseImpact(for: indicator)
-        }
+        _surpriseSnapshot[indicator.rawValue] ?? 0
     }
 
-    /// Nonisolated wrapper — engine (MacroRegimeService) MainActor üzerinde değil,
-    /// ama FRED fetch tamamlandığında tahminleri güncellemesi lazım.
+    /// Fire-and-forget write: main actor'a hoplar, caller'ı bloklamaz.
     @discardableResult
     nonisolated func matchAndUpdateActualSync(indicator: EconomicIndicator, value: Double, observationDate: Date) -> Bool {
-        return MainActor.assumeIsolated {
+        Task { @MainActor in
             self.matchAndUpdateActual(indicator: indicator, value: value, observationDate: observationDate)
         }
+        return true
     }
     
     func clearExpectation(for indicator: EconomicIndicator) {

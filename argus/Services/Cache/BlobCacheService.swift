@@ -13,7 +13,7 @@ import Foundation
 /// - Documents iCloud'a yedeklenir (kullanıcı 5GB blob istemez)
 /// - Caches yedeklenmez, sistem gerekirse temizler (graceful)
 /// - Blob ledger'ın yeniden inşa edilebilir parçası (DB hash zaten var)
-nonisolated final class BlobCacheService {
+final class BlobCacheService {
     static let shared = BlobCacheService()
 
     /// Caches/argus_blobs/ tam yolu. İlk çağrıda klasör yoksa oluşturulur.

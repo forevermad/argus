@@ -126,8 +126,8 @@ struct OrionV2TuningConfig: Codable, Sendable {
 final class OrionV2TuningStore {
     static let shared = OrionV2TuningStore()
     
-    private var cache: [String: OrionV2TuningConfig] = [:]
-    private var globalConfig: OrionV2TuningConfig = .default
+    private nonisolated(unsafe) var cache: [String: OrionV2TuningConfig] = [:]
+    private nonisolated(unsafe) var globalConfig: OrionV2TuningConfig = .default
     private let fileURL: URL
     
     private init() {
@@ -138,12 +138,12 @@ final class OrionV2TuningStore {
     // MARK: - Public API
     
     /// Gets config for a specific symbol, falls back to global if not found
-    func getConfig(symbol: String) -> OrionV2TuningConfig {
+    nonisolated func getConfig(symbol: String) -> OrionV2TuningConfig {
         cache[symbol] ?? globalConfig
     }
-    
+
     /// Gets the global config
-    func getGlobalConfig() -> OrionV2TuningConfig {
+    nonisolated func getGlobalConfig() -> OrionV2TuningConfig {
         globalConfig
     }
     

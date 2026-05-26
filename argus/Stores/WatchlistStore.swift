@@ -209,7 +209,56 @@ class WatchlistStore: ObservableObject {
             "CCOLA.IS", "ECILC.IS", "EUPWR.IS", "ISMEN.IS", "KLKIM.IS",
             "MPARK.IS", "PARSN.IS", "PENGD.IS", "SELEC.IS", "SKBNK.IS",
             "SMRTG.IS", "TATGD.IS", "TTRAK.IS", "YATAS.IS", "ZOREN.IS",
-            "BIZIM.IS", "OYAKC.IS", "ALBRK.IS"
+            "BIZIM.IS", "OYAKC.IS", "ALBRK.IS",
+            // BIST — mayıs 2026 tam liste (hisse listesi yeni mayıs2026.txt)
+            "A1CAP.IS", "ACSEL.IS", "ADEL.IS", "ADESE.IS", "ADGYO.IS", "AFYON.IS", "AGESA.IS", "AGROT.IS",
+            "AHSGY.IS", "AKCNS.IS", "AKENR.IS", "AKFYE.IS", "AKGRT.IS", "AKMGY.IS", "AKSA.IS", "ALCAR.IS",
+            "ALCTL.IS", "ALFAS.IS", "ALKA.IS", "ALKLC.IS", "ALTNY.IS", "ALVES.IS", "ANELE.IS", "ANGEN.IS",
+            "ANSGR.IS", "ARDYZ.IS", "ARENA.IS", "ARSAN.IS", "ARTMS.IS", "ASGYO.IS", "ASUZU.IS", "ATAKP.IS",
+            "ATATP.IS", "AVGYO.IS", "AVHOL.IS", "AVOD.IS", "AVPGY.IS", "AYDEM.IS", "AYEN.IS", "AYES.IS",
+            "AZTEK.IS", "BAGFS.IS", "BAHKM.IS", "BAKAB.IS", "BALSU.IS", "BANVT.IS", "BASGZ.IS", "BAYRK.IS",
+            "BEGYO.IS", "BERA.IS", "BEYAZ.IS", "BIGCH.IS", "BINBN.IS", "BINHO.IS", "BJKAS.IS", "BLCYT.IS",
+            "BNTAS.IS", "BOBET.IS", "BORLS.IS", "BORSK.IS", "BOSSA.IS", "BRISA.IS", "BRKO.IS", "BRKSN.IS",
+            "BRMEN.IS", "BRYAT.IS", "BSOKE.IS", "BTCIM.IS", "BUCIM.IS", "BULGS.IS", "BURCE.IS", "BURVA.IS",
+            "BVSAN.IS", "CANTE.IS", "CATES.IS", "CELHA.IS", "CEMAS.IS", "CEMTS.IS", "CEMZY.IS", "CLEBI.IS",
+            "CMBTN.IS", "CMENT.IS", "CONSE.IS", "COSMO.IS", "CRDFA.IS", "CUSAN.IS", "CVKMD.IS", "CWENE.IS",
+            "DAGI.IS", "DAPGM.IS", "DARDL.IS", "DCTTR.IS", "DGATE.IS", "DGGYO.IS", "DGNMO.IS", "DIRIT.IS",
+            "DITAS.IS", "DMLKT.IS", "DMSAS.IS", "DOCO.IS", "DOFER.IS", "DOHOL.IS", "DOKTA.IS", "DUNYH.IS",
+            "DURKN.IS", "DYOBY.IS", "DZGYO.IS", "EBEBK.IS", "ECZYT.IS", "EDATA.IS", "EDIP.IS", "EGEPO.IS",
+            "EGGUB.IS", "EGPRO.IS", "EKIZ.IS", "EKOS.IS", "EKSUN.IS", "ELITE.IS", "EMKEL.IS", "ENDAE.IS",
+            "ENSRI.IS", "ENTRA.IS", "ERSU.IS", "ESCOM.IS", "ESEN.IS", "ETILR.IS", "EUREN.IS", "EYGYO.IS",
+            "FENER.IS", "FLAP.IS", "FMIZP.IS", "FONET.IS", "FORMT.IS", "FRIGO.IS", "FZLGY.IS", "GARFA.IS",
+            "GENIL.IS", "GENTS.IS", "GEREL.IS", "GIPTA.IS", "GLBMD.IS", "GLCVY.IS", "GLRYH.IS", "GLYHO.IS",
+            "GMTAS.IS", "GOKNR.IS", "GOODY.IS", "GOZDE.IS", "GRNYO.IS", "GRSEL.IS", "GSDDE.IS", "GSDHO.IS",
+            "GSRAY.IS", "GUNDG.IS", "GWIND.IS", "GZNMI.IS", "HATEK.IS", "HEDEF.IS", "HKTM.IS", "HLGYO.IS",
+            "HOROZ.IS", "HRKET.IS", "HTTBT.IS", "HUBVC.IS", "HUNER.IS", "HURGZ.IS", "ICBCT.IS", "IDGYO.IS",
+            "IEYHO.IS", "IHAAS.IS", "IHEVA.IS", "IHGZT.IS", "IHLAS.IS", "IHLGM.IS", "IHYAY.IS", "IMASM.IS",
+            "INDES.IS", "INFO.IS", "INGRM.IS", "INTEM.IS", "ISATR.IS", "ISBTR.IS", "ISDMR.IS", "ISFIN.IS",
+            "ISGSY.IS", "ISGYO.IS", "ISKPL.IS", "ISSEN.IS", "ISYAT.IS", "IZENR.IS", "IZFAS.IS", "IZINV.IS",
+            "IZMDC.IS", "JANTS.IS", "KAPLM.IS", "KAREL.IS", "KARYE.IS", "KATMR.IS", "KAYSE.IS", "KFEIN.IS",
+            "KGYO.IS", "KIMMR.IS", "KLGYO.IS", "KLMSN.IS", "KLRHO.IS", "KLSYN.IS", "KLYPV.IS", "KMPUR.IS",
+            "KNFRT.IS", "KOCMT.IS", "KONYA.IS", "KOTON.IS", "KRDMA.IS", "KRDMB.IS", "KRDMD.IS", "KRGYO.IS",
+            "KRONT.IS", "KRPLS.IS", "KRSTL.IS", "KRVGD.IS", "KSTUR.IS", "KTSKR.IS", "KUTPO.IS", "KUVVA.IS",
+            "LIDER.IS", "LIDFA.IS", "LILAK.IS", "LINK.IS", "LMKDC.IS", "LRSHO.IS", "LUKSK.IS", "LYDHO.IS",
+            "MAALT.IS", "MAGEN.IS", "MAKTK.IS", "MANAS.IS", "MARKA.IS", "MARTI.IS", "MEDTR.IS", "MEGAP.IS",
+            "MEGMT.IS", "MEPET.IS", "MERCN.IS", "MERKO.IS", "METRO.IS", "METUR.IS", "MIATK.IS", "MMCAS.IS",
+            "MNDRS.IS", "MNDTR.IS", "MOBTL.IS", "MOGAN.IS", "MRGYO.IS", "MRSHL.IS", "MSGYO.IS", "MTRKS.IS",
+            "MTRYO.IS", "MZHLD.IS", "NIBAS.IS", "NTGAZ.IS", "NTHOL.IS", "NUGYO.IS", "NUHCM.IS", "OBAMS.IS",
+            "ODINE.IS", "ONCSM.IS", "ONRYT.IS", "ORCAY.IS", "ORGE.IS", "ORMA.IS", "OYAYO.IS", "OYLUM.IS",
+            "OYYAT.IS", "OZATD.IS", "OZGYO.IS", "OZKGY.IS", "OZRDN.IS", "PAGYO.IS", "PAMEL.IS", "PAPIL.IS",
+            "PASEU.IS", "PATEK.IS", "PCILT.IS", "PEKGY.IS", "PENTA.IS", "PETUN.IS", "PINSU.IS", "PKART.IS",
+            "PKENT.IS", "PNLSN.IS", "PNSUT.IS", "POLHO.IS", "POLTK.IS", "PRDGS.IS", "PRKAB.IS", "PRKME.IS",
+            "PRZMA.IS", "PSGYO.IS", "QUAGR.IS", "RALYH.IS", "RAYSG.IS", "REEDR.IS", "RNPOL.IS", "RODRG.IS",
+            "RTALB.IS", "RUBNS.IS", "RYGYO.IS", "RYSAS.IS", "SAFKR.IS", "SAMAT.IS", "SANEL.IS", "SANKO.IS",
+            "SARKY.IS", "SAYAS.IS", "SDTTR.IS", "SEGMN.IS", "SEKFK.IS", "SEKUR.IS", "SELGD.IS", "SELVA.IS",
+            "SILVR.IS", "SKTAS.IS", "SMART.IS", "SNGYO.IS", "SNICA.IS", "SONME.IS", "SRVGY.IS", "SUNTK.IS",
+            "SURGY.IS", "TABGD.IS", "TATEN.IS", "TCKRC.IS", "TDGYO.IS", "TEKTU.IS", "TERA.IS", "TGSAS.IS",
+            "TKNSA.IS", "TMSN.IS", "TNZTP.IS", "TRALT.IS", "TRCAS.IS", "TRENJ.IS", "TRGYO.IS", "TRILC.IS",
+            "TRMET.IS", "TSKB.IS", "TSPOR.IS", "TUCLK.IS", "TUKAS.IS", "TUREX.IS", "TURSG.IS", "UFUK.IS",
+            "ULAS.IS", "ULUFA.IS", "ULUSE.IS", "ULUUN.IS", "UMPAS.IS", "USAK.IS", "VAKFN.IS", "VAKKO.IS",
+            "VANGD.IS", "VBTYZ.IS", "VERTU.IS", "VERUS.IS", "VESBE.IS", "VKFYO.IS", "VKGYO.IS", "VKING.IS",
+            "YAPRK.IS", "YAYLA.IS", "YBTAS.IS", "YEOTK.IS", "YESIL.IS", "YGGYO.IS", "YIGIT.IS", "YKSLN.IS",
+            "YONGA.IS", "YUNSA.IS", "YYAPI.IS", "YYLGD.IS", "ZEDUR.IS", "ZRGYO.IS"
         ]
         
         var addedCount = 0
@@ -244,6 +293,34 @@ class WatchlistStore: ObservableObject {
     private func saveWatchlist() {
         if let encoded = try? JSONEncoder().encode(items) {
             UserDefaults.standard.set(encoded, forKey: "watchlist_v2")
+        }
+    }
+
+    // MARK: - BIST TÜM Universe Sync
+
+    /// BIST TÜM (XUTUM) endeksindeki tüm hisseleri BorsaPy'den çekip listeye ekler.
+    /// Zaten varsa dokunmaz (idempotent). Sadece backend erişilebilirken çalışır.
+    func refreshBistUniverse() async {
+        guard await BorsaPyProvider.shared.isBackendWarm() else { return }
+        do {
+            // getAllBistSymbols() tüm pazarları kapsar (XUTUM + GİP + diğerleri).
+            // XUTUM'a girmeyen Gelişen İşletmeler Pazarı hisseleri de dahil olur.
+            let allSymbols = try await BorsaPyProvider.shared.getAllBistSymbols()
+            guard !allSymbols.isEmpty else { return }
+            let withSuffix = allSymbols.map { $0.hasSuffix(".IS") ? $0 : "\($0).IS" }
+            var added = 0
+            for symbol in withSuffix {
+                if !items.contains(symbol) {
+                    items.append(symbol)
+                    added += 1
+                }
+            }
+            if added > 0 {
+                print("✨ WatchlistStore: BIST tam liste \(added) yeni hisse eklendi (\(items.filter { $0.hasSuffix(".IS") }.count) toplam BIST).")
+                saveWatchlist()
+            }
+        } catch {
+            print("⚠️ WatchlistStore: BIST tam liste güncelleme başarısız — \(error.localizedDescription)")
         }
     }
 }

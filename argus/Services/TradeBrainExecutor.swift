@@ -364,7 +364,10 @@ class TradeBrainExecutor: ObservableObject {
                     continue
                 }
 
-                let dataQualityPenalty: Double = (isBistSym && BorsaPyProvider.shared.isCircuitOpen()) ? 0.85 : 1.0
+                let borsaPyCircuitOpen: Bool
+                if isBistSym { borsaPyCircuitOpen = await BorsaPyProvider.shared.isCircuitOpen() }
+                else { borsaPyCircuitOpen = false }
+                let dataQualityPenalty: Double = borsaPyCircuitOpen ? 0.85 : 1.0
 
                 let coreScore = decision.finalScoreCore
                 let pulseScore = decision.finalScorePulse
@@ -810,13 +813,17 @@ class TradeBrainExecutor: ObservableObject {
         let marketOpenCount = marketFilteredPortfolio.count
         ArgusLogger.info("executeBuy: \(isBist ? "BIST" : "GLOBAL") açık pozisyon sayısı = \(marketOpenCount)", category: "TRADEBRAIN")
         
+        let peakEquity = await MainActor.run {
+            isBist ? PortfolioStore.shared.peakBistEquity : PortfolioStore.shared.peakGlobalEquity
+        }
         let riskCheck = PortfolioRiskManager.shared.checkBuyRisk(
             symbol: symbol,
             proposedAmount: allocation,
             currentPrice: currentPrice,
             portfolio: marketFilteredPortfolio,
             cashBalance: availableBalance,
-            totalEquity: totalEquity
+            totalEquity: totalEquity,
+            peakEquity: peakEquity
         )
         
         ArgusLogger.info("executeBuy: Risk Check - CanTrade: \(riskCheck.canTrade), Blockers: \(riskCheck.blockers)", category: "TRADEBRAIN")
@@ -914,8 +921,9 @@ class TradeBrainExecutor: ObservableObject {
         //
         // Doğru kaynak: MacroRegimeService'in cached numericScore'u (0-100 aralığında,
         // satır 478'de `regimeAetherScore` olarak zaten hesaplandı).
+        let atlasScoreForLogging = await MainActor.run { FundamentalScoreStore.shared.getScore(for: symbol)?.totalScore }
         let scores = (
-            atlas: FundamentalScoreStore.shared.getScore(for: symbol)?.totalScore,
+            atlas: atlasScoreForLogging,
             orion: orionScore as Double?,
             aether: regimeAetherScore,
             hermes: nil as Double?
@@ -1014,11 +1022,12 @@ class TradeBrainExecutor: ObservableObject {
                 )
             }
         } else {
-            log("❌ \(symbol): Alım REDDEDİLDİ — \(ExecutionLogger.shared.lastTradeError ?? "?")")
-            ArgusLogger.error("executeBuy: ALIM REDDEDİLDİ - \(symbol): \(ExecutionLogger.shared.lastTradeError ?? "?")", category: "TRADEBRAIN")
+            let lastExecError = await MainActor.run { ExecutionLogger.shared.lastTradeError }
+            log("❌ \(symbol): Alım REDDEDİLDİ — \(lastExecError ?? "?")")
+            ArgusLogger.error("executeBuy: ALIM REDDEDİLDİ - \(symbol): \(lastExecError ?? "?")", category: "TRADEBRAIN")
             await TradeBrainExecutionTracker.shared.recordSkip(
                 symbol: symbol,
-                reason: "Execution failed: \(ExecutionLogger.shared.lastTradeError ?? "?")"
+                reason: "Execution failed: \(lastExecError ?? "?")"
             )
         }
 
@@ -1167,8 +1176,9 @@ class TradeBrainExecutor: ObservableObject {
                     category: "TRADEBRAIN"
                 )
             } else {
+                let lastExecError = await MainActor.run { ExecutionLogger.shared.lastTradeError }
                 ArgusLogger.error(
-                    "TradeBrainSafeAllocation: BUY RED \(order.symbol) — \(ExecutionLogger.shared.lastTradeError ?? "?")",
+                    "TradeBrainSafeAllocation: BUY RED \(order.symbol) — \(lastExecError ?? "?")",
                     category: "TRADEBRAIN"
                 )
             }

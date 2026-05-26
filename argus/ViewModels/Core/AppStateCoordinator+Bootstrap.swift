@@ -86,6 +86,14 @@ extension AppStateCoordinator {
                     AutoPilotStore.shared.startAutoPilotLoop()
                 }
             }
+
+            // BIST TÜM universe sync — BorsaPy cold-start 40-60sn sürebiliyor;
+            // 30sn bekleyince warmUp() genellikle tamamlanmış oluyor.
+            // refreshBistUniverse() kendi içinde isBackendWarm() kontrolü yapar (güvenli).
+            Task.detached(priority: .background) {
+                try? await Task.sleep(nanoseconds: 30_000_000_000)
+                await WatchlistStore.shared.refreshBistUniverse()
+            }
         }
 
         // PHASE 4: BACKGROUND — Atlas/Demeter (en ağır)
