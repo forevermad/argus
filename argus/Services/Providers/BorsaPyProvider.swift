@@ -333,34 +333,45 @@ actor BorsaPyProvider {
     /// before the first user-facing BIST request. Uses its own long
     /// timeout (Render cold start can run 30-60s) and bypasses the
     /// circuit breaker so the wake-up itself does not trip it.
-    func warmUp() async {
+    /// borsapy_ready: true gelene kadar /health'i polling yapar.
+    /// Render free-tier cold start: Python başlaması ~30s + borsapy fast_info ~60-120s.
+    /// Toplam bekleme: 5 dakika (30 deneme × 10s aralık).
+    @discardableResult
+    func warmUp() async -> Bool {
         let candidates = await configuredBackendCandidates()
-        guard let baseURL = preferredBackendBaseURL ?? candidates.first else { return }
+        guard let baseURL = preferredBackendBaseURL ?? candidates.first,
+              let healthURL = URL(string: "\(baseURL)/health") else { return false }
 
-        // Step 1: Health check — FastAPI'nin uyanıp uyanmadığını kontrol et.
-        guard let healthURL = URL(string: "\(baseURL)/health") else { return }
-        var healthReq = URLRequest(url: healthURL)
-        healthReq.timeoutInterval = 90
-        healthReq.cachePolicy = .reloadIgnoringLocalCacheData
-        do {
-            _ = try await URLSession.shared.data(for: healthReq)
-        } catch {
-            print("BorsaPyProvider: warm-up failed (\(error.localizedDescription))")
-            return
+        let maxAttempts = 30
+        for attempt in 1...maxAttempts {
+            var req = URLRequest(url: healthURL)
+            req.timeoutInterval = 15
+            req.cachePolicy = .reloadIgnoringLocalCacheData
+            do {
+                let (data, _) = try await URLSession.shared.data(for: req)
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    if json["borsapy_ready"] as? Bool == true {
+                        recordSuccess()
+                        print("BorsaPyProvider: backend warm ✅ (borsapy_ready:\(attempt). deneme)")
+                        return true
+                    }
+                    // Server up but borsapy still loading — wait and retry
+                    print("BorsaPyProvider: server hazır ama borsapy yükleniyor (\(attempt)/\(maxAttempts))...")
+                } else {
+                    // Old server (no borsapy_ready field) — assume ready
+                    recordSuccess()
+                    print("BorsaPyProvider: eski server formatı, warm kabul edildi")
+                    return true
+                }
+            } catch {
+                print("BorsaPyProvider: health timeout (\(attempt)/\(maxAttempts)) — \(error.localizedDescription)")
+            }
+            if attempt < maxAttempts {
+                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10s
+            }
         }
-
-        // Step 2: Gerçek data endpointi — borsapy kütüphanesi FastAPI'den sonra
-        // yükleniyor. Health OK olsa bile ilk data isteği timeout'a girebilir.
-        // AKBNK/quote ile kütüphaneyi prime ediyoruz; sonraki istekler hızlı yanıtlar.
-        if let primeURL = URL(string: "\(baseURL)/ticker/AKBNK/quote") {
-            var primeReq = URLRequest(url: primeURL)
-            primeReq.timeoutInterval = 60
-            primeReq.cachePolicy = .reloadIgnoringLocalCacheData
-            _ = try? await URLSession.shared.data(for: primeReq)
-        }
-
-        recordSuccess()
-        print("BorsaPyProvider: backend warm ✅ (borsapy hazır)")
+        print("BorsaPyProvider: warm-up başarısız — 5dk içinde borsapy hazır olmadı")
+        return false
     }
 
     private static func candidateBaseURLs() -> [String] {

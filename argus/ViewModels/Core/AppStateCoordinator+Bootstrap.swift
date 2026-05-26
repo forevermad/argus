@@ -37,8 +37,12 @@ extension AppStateCoordinator {
         // çalışmaya başladığında backend uyanmış oluyor.
         Task.detached(priority: .userInitiated) {
             ArgusLogger.phase(.veri, "BorsaPy: Backend ısındırılıyor (erken)...")
-            await BorsaPyProvider.shared.warmUp()
-            // Warmup tamamlandı → BorsaPy quote'larını direkt inject et.
+            let isWarm = await BorsaPyProvider.shared.warmUp()
+            guard isWarm else {
+                ArgusLogger.phase(.veri, "BorsaPy: Warmup başarısız, inject atlandı.")
+                return
+            }
+            // Warmup tamamlandı → borsapy_ready:true geldi → inject güvenli.
             // Yahoo candle'dan türetilen eski fiyatı (önceki gün kapanış) ezer.
             let bistSymbols = await WatchlistStore.shared.items
                 .filter { $0.uppercased().hasSuffix(".IS") }
@@ -47,7 +51,6 @@ extension AppStateCoordinator {
                 for symbol in bistSymbols {
                     group.addTask {
                         let bare = symbol.uppercased().replacingOccurrences(of: ".IS", with: "")
-                        // Circuit breaker bypass: warmup tamamlandı, backend hazır garantisi var.
                         guard let bist = await BorsaPyProvider.shared.getBistQuoteDirectly(symbol: bare) else { return }
                         let quote = HeimdallOrchestrator.convert(bist: bist, canonical: symbol)
                         await MainActor.run {

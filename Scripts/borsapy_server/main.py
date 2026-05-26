@@ -36,6 +36,7 @@ except ImportError:
     BorsapyAPIError = Exception
 
 _KEEP_ALIVE_INTERVAL = 600  # 10 dakika
+_borsapy_ready = False  # prewarm tamamlanınca True olur
 
 async def _keep_alive_loop():
     """Render free tier 15dk inaktivite sonrası uyutur. Kendi /health
@@ -54,12 +55,16 @@ async def _keep_alive_loop():
             print(f"KEEP-ALIVE: ping başarısız — {e}")
 
 def _prewarm_modules():
-    """İlk isteği hızlandırmak için borsapy modüllerini önceden yükle."""
+    """borsapy'yi gerçek bir fast_info çağrısıyla ısındır.
+    Sadece Ticker() oluşturmak yetmez — asıl ağır iş fast_info'dadır."""
+    global _borsapy_ready
     try:
-        _ = bp.Ticker("THYAO")
-        print("PREWARM: borsapy Ticker modülü yüklendi")
-    except Exception:
-        pass
+        t = bp.Ticker("THYAO")
+        _ = t.fast_info  # Is Yatirim bağlantısı burada kurulur
+        _borsapy_ready = True
+        print("PREWARM: borsapy hazır ✅ (THYAO fast_info yüklendi)")
+    except Exception as e:
+        print(f"PREWARM: hata — {e} (borsapy_ready=False)")
 
 @asynccontextmanager
 async def lifespan(app):
@@ -173,7 +178,7 @@ def df_to_records(df):
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "service": "borsapy-backend", "version": "1.0.0"}
+    return {"status": "ok", "service": "borsapy-backend", "version": "1.2.0", "borsapy_ready": _borsapy_ready}
 
 
 # ---------------------------------------------------------------------------
@@ -182,11 +187,9 @@ async def health():
 
 @app.get("/ticker/{symbol}/quote")
 async def ticker_quote(symbol: str):
-    try:
+    def _fetch():
         t = bp.Ticker(symbol.upper())
         fi = t.fast_info
-
-        # fast_info is an object, not dict - use getattr
         return {
             "symbol": symbol.upper(),
             "last": safe_val(getattr(fi, "last_price", None)),
@@ -195,13 +198,16 @@ async def ticker_quote(symbol: str):
             "low": safe_val(getattr(fi, "day_low", None)),
             "previousClose": safe_val(getattr(fi, "previous_close", None)),
             "volume": safe_val(getattr(fi, "volume", None)),
-            "change": safe_val(getattr(fi, "last_price", None)),  # Fallback
+            "change": safe_val(getattr(fi, "last_price", None)),
             "marketCap": safe_val(getattr(fi, "market_cap", None)),
             "pe": safe_val(getattr(fi, "pe_ratio", None)),
             "freeFloat": safe_val(getattr(fi, "free_float", None)),
             "foreignRatio": safe_val(getattr(fi, "foreign_ratio", None)),
             "timestamp": datetime.now().isoformat(),
         }
+    try:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, _fetch)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -216,10 +222,13 @@ async def ticker_history(
     period: str = Query("1ay", description="1g, 1h, 1ay, 3ay, 1y, max"),
     interval: str = Query("1d", description="1m, 5m, 15m, 1h, 1d"),
 ):
-    try:
+    def _fetch():
         t = bp.Ticker(symbol.upper())
         df = t.history(period=period, interval=interval)
         return {"symbol": symbol.upper(), "candles": df_to_candles(df)}
+    try:
+        loop = asyncio.get_running_loop()
+        return await loop.run_in_executor(None, _fetch)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
