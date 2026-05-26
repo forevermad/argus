@@ -38,10 +38,24 @@ extension AppStateCoordinator {
         Task.detached(priority: .userInitiated) {
             ArgusLogger.phase(.veri, "BorsaPy: Backend ısındırılıyor (erken)...")
             await BorsaPyProvider.shared.warmUp()
-            // Warmup tamamlandı → cold-start sırasında İş Yatırım/Yahoo'dan
-            // giren eski BIST fiyatlarını temizle ve hemen yenile.
-            await MainActor.run { MarketDataStore.shared.invalidateBistQuotes() }
-            await MarketViewModel.shared.fetchQuotes()
+            // Warmup tamamlandı → BorsaPy quote'larını direkt inject et.
+            // Yahoo candle'dan türetilen eski fiyatı (önceki gün kapanış) ezer.
+            let bistSymbols = await WatchlistStore.shared.items
+                .filter { $0.uppercased().hasSuffix(".IS") }
+                .prefix(80) // Rate limit: ilk 80 sembol (en likit watchlist)
+            await withTaskGroup(of: Void.self) { group in
+                for symbol in bistSymbols {
+                    group.addTask {
+                        let bare = symbol.uppercased().replacingOccurrences(of: ".IS", with: "")
+                        guard let bist = try? await BorsaPyProvider.shared.getBistQuote(symbol: bare) else { return }
+                        let quote = HeimdallOrchestrator.convert(bist: bist, canonical: symbol)
+                        await MainActor.run {
+                            MarketDataStore.shared.injectLiveQuote(quote, source: "BorsaPy-Warmup")
+                        }
+                    }
+                }
+            }
+            ArgusLogger.phase(.veri, "BorsaPy: BIST fiyatları güncellendi.")
         }
 
         ArgusLogger.success(.bootstrap, "Faz 1: UI hazır")
