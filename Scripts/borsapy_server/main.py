@@ -63,7 +63,11 @@ def _prewarm_modules():
 
 @asynccontextmanager
 async def lifespan(app):
-    _prewarm_modules()
+    # Run prewarm in thread pool — blocking borsapy import must NOT block
+    # server startup. /health must respond immediately so the iOS client
+    # knows the server is up; actual borsapy readiness follows within ~30s.
+    loop = asyncio.get_running_loop()
+    loop.run_in_executor(None, _prewarm_modules)
     task = asyncio.create_task(_keep_alive_loop())
     yield
     task.cancel()
