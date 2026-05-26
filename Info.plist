@@ -83,5 +83,39 @@
     <string>$(BORSAPY_URL)</string>
     <key>BORSAPY_KEY</key>
     <string>$(BORSAPY_KEY)</string>
+    <key>CEREBRAS_KEY</key>
+    <string>$(CEREBRAS_KEY)</string>
+    <key>FMP_KEY</key>
+    <string>$(FMP_KEY)</string>
+    <key>TWELVE_DATA_KEY</key>
+    <string>$(TWELVE_DATA_KEY)</string>
+    <key>FINNHUB_KEY</key>
+    <string>$(FINNHUB_KEY)</string>
+    <key>GEMINI_KEY</key>
+    <string>$(GEMINI_KEY)</string>
+    <key>GEMINI_KEY_BACKUP</key>
+    <string>$(GEMINI_KEY_BACKUP)</string>
+    <key>GROQ_KEY</key>
+    <string>$(GROQ_KEY)</string>
+    <key>DEEPSEEK_KEY</key>
+    <string>$(DEEPSEEK_KEY)</string>
+    <key>GLM_KEY</key>
+    <string>$(GLM_KEY)</string>
+    <key>TIINGO_KEY</key>
+    <string>$(TIINGO_KEY)</string>
+    <key>ALPHA_VANTAGE_KEY</key>
+    <string>$(ALPHA_VANTAGE_KEY)</string>
+    <key>EODHD_KEY</key>
+    <string>$(EODHD_KEY)</string>
+    <key>FRED_KEY</key>
+    <string>$(FRED_KEY)</string>
+    <key>MARKETSTACK_KEY</key>
+    <string>$(MARKETSTACK_KEY)</string>
+    <key>PINECONE_KEY</key>
+    <string>$(PINECONE_KEY)</string>
+    <key>PINECONE_BASE_URL</key>
+    <string>$(PINECONE_BASE_URL)</string>
+    <key>DOVIZCOM_KEY</key>
+    <string>$(DOVIZCOM_KEY)</string>
 </dict>
 </plist>
