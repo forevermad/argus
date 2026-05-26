@@ -334,7 +334,8 @@ actor BorsaPyProvider {
     /// timeout (Render cold start can run 30-60s) and bypasses the
     /// circuit breaker so the wake-up itself does not trip it.
     func warmUp() async {
-        guard let baseURL = preferredBackendBaseURL ?? Self.candidateBaseURLs().first else {
+        let candidates = await configuredBackendCandidates()
+        guard let baseURL = preferredBackendBaseURL ?? candidates.first else {
             return
         }
         guard let url = URL(string: "\(baseURL)/health") else { return }
