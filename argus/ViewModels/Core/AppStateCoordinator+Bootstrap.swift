@@ -47,7 +47,8 @@ extension AppStateCoordinator {
                 for symbol in bistSymbols {
                     group.addTask {
                         let bare = symbol.uppercased().replacingOccurrences(of: ".IS", with: "")
-                        guard let bist = try? await BorsaPyProvider.shared.getBistQuote(symbol: bare) else { return }
+                        // Circuit breaker bypass: warmup tamamlandı, backend hazır garantisi var.
+                        guard let bist = await BorsaPyProvider.shared.getBistQuoteDirectly(symbol: bare) else { return }
                         let quote = HeimdallOrchestrator.convert(bist: bist, canonical: symbol)
                         await MainActor.run {
                             MarketDataStore.shared.injectLiveQuote(quote, source: "BorsaPy-Warmup")

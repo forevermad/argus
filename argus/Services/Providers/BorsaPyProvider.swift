@@ -376,7 +376,36 @@ actor BorsaPyProvider {
     }
 
     // MARK: - Public API: Quote
-    
+
+    /// Circuit breaker'ı bypass ederek direkt URLSession ile quote çeker.
+    /// Yalnızca warmup tamamlandıktan sonra çağrılmalı (backend hazır garantisi).
+    func getBistQuoteDirectly(symbol: String) async -> BistQuote? {
+        let clean = cleanSymbol(symbol)
+        let candidates = await configuredBackendCandidates()
+        guard let baseURL = preferredBackendBaseURL ?? candidates.first,
+              let url = URL(string: "\(baseURL)/ticker/\(clean)/quote") else { return nil }
+        var req = URLRequest(url: url)
+        req.timeoutInterval = 15
+        req.cachePolicy = .reloadIgnoringLocalCacheData
+        guard let (data, _) = try? await URLSession.shared.data(for: req),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let last = json["last"] as? Double, last > 0 else { return nil }
+        let quote = BistQuote(
+            symbol: clean,
+            last: last,
+            open: json["open"] as? Double ?? 0,
+            high: json["high"] as? Double ?? 0,
+            low: json["low"] as? Double ?? 0,
+            previousClose: json["previousClose"] as? Double ?? 0,
+            volume: json["volume"] as? Double ?? 0,
+            change: json["change"] as? Double ?? 0,
+            bid: 0, ask: 0,
+            timestamp: Date()
+        )
+        quoteCache[clean] = (quote, Date())
+        return quote
+    }
+
     func getBistQuote(symbol: String) async throws -> BistQuote {
         let clean = cleanSymbol(symbol)
         
