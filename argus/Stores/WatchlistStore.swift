@@ -303,11 +303,10 @@ class WatchlistStore: ObservableObject {
     func refreshBistUniverse() async {
         guard await BorsaPyProvider.shared.isBackendWarm() else { return }
         do {
-            // getAllBistSymbols() tüm pazarları kapsar (XUTUM + GİP + diğerleri).
-            // XUTUM'a girmeyen Gelişen İşletmeler Pazarı hisseleri de dahil olur.
-            let allSymbols = try await BorsaPyProvider.shared.getAllBistSymbols()
-            guard !allSymbols.isEmpty else { return }
-            let withSuffix = allSymbols.map { $0.hasSuffix(".IS") ? $0 : "\($0).IS" }
+            // XUTUM (BIST TÜM) 568+ sembol döndürüyor — GIPTA dahil tüm pazarlar.
+            let components = try await BorsaPyProvider.shared.getIndexComponents(code: "XUTUM")
+            guard !components.isEmpty else { return }
+            let withSuffix = components.map { $0.hasSuffix(".IS") ? $0 : "\($0).IS" }
             var added = 0
             for symbol in withSuffix {
                 if !items.contains(symbol) {
@@ -316,11 +315,11 @@ class WatchlistStore: ObservableObject {
                 }
             }
             if added > 0 {
-                print("✨ WatchlistStore: BIST tam liste \(added) yeni hisse eklendi (\(items.filter { $0.hasSuffix(".IS") }.count) toplam BIST).")
+                print("✨ WatchlistStore: BIST TÜM'den \(added) yeni hisse eklendi (\(items.filter { $0.hasSuffix(".IS") }.count) toplam BIST).")
                 saveWatchlist()
             }
         } catch {
-            print("⚠️ WatchlistStore: BIST tam liste güncelleme başarısız — \(error.localizedDescription)")
+            print("⚠️ WatchlistStore: BIST TÜM güncelleme başarısız — \(error.localizedDescription)")
         }
     }
 }

@@ -412,18 +412,6 @@ actor BorsaPyProvider {
         return []
     }
 
-    /// BIST'te işlem gören TÜM hisseleri döndürür — XUTUM + GİP + diğer pazarlar.
-    /// Kaynak: BIST resmi CSV (hisse_endeks_ds.csv). XUTUM'a girmeyen küçük
-    /// şirketler (örn. Gelişen İşletmeler Pazarı) bu çağrıyla eklenir.
-    func getAllBistSymbols() async throws -> [String] {
-        let json = try await fetchJSON(path: "/stocks/all")
-        guard let root = json as? [String: Any],
-              let list = root["symbols"] as? [String] else {
-            throw URLError(.cannotParseResponse)
-        }
-        return list
-    }
-
     // MARK: - Public API: History
     
     func getBistHistory(symbol: String, days: Int = 30) async throws -> [BorsaPyCandle] {
