@@ -44,6 +44,20 @@ final class MarketDataStore: ObservableObject {
     func clearUserFocus() {
         userFocusedSymbol = nil
     }
+
+    /// BorsaPy warmup tamamlandıktan sonra çağrılır. Cold-start süresinde
+    /// fallback sağlayıcıdan (İş Yatırım / Yahoo) cache'e giren eski BIST
+    /// fiyatlarını stale işaretler; SWR BorsaPy'den taze veri çeker.
+    func invalidateBistQuotes() {
+        let bistKeys = quotes.keys.filter { $0.uppercased().hasSuffix(".IS") }
+        for key in bistKeys {
+            guard let old = quotes[key], old.value != nil else { continue }
+            quotes[key] = DataValue(value: old.value, provenance: old.provenance, status: .stale)
+        }
+        if !bistKeys.isEmpty {
+            print("🔄 MarketDataStore: \(bistKeys.count) BIST quote stale işaretlendi (BorsaPy warmup sonrası yenileme).")
+        }
+    }
     
     // MARK: - Configuration
     // 2026-05-04: Quote TTL 60 → 180s (3 dakika). Watchlist refresh interval'iyle

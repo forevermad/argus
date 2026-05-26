@@ -38,6 +38,9 @@ extension AppStateCoordinator {
         Task.detached(priority: .userInitiated) {
             ArgusLogger.phase(.veri, "BorsaPy: Backend ısındırılıyor (erken)...")
             await BorsaPyProvider.shared.warmUp()
+            // Warmup tamamlandı → cold-start sırasında İş Yatırım/Yahoo'dan
+            // giren eski BIST fiyatlarını stale yap; SWR BorsaPy'den tazeler.
+            await MainActor.run { MarketDataStore.shared.invalidateBistQuotes() }
         }
 
         ArgusLogger.success(.bootstrap, "Faz 1: UI hazır")
